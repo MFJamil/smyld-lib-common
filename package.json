@@ -1,0 +1,28 @@
+{
+  "name": "smyld-lib-scroll-visible",
+  "version": "1.0.1",
+  "description": "Library that detects the elements when they are finally visible via scrolling",
+  "main": "main.js",
+  "private": false,
+  "scripts": {
+    "test": "#"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MFJamil/Transfer.git"
+  },
+  "keywords": [
+    "JS",
+    "Scroll",
+    "Visible",
+    "show",
+    "on",
+    "scroll"
+  ],
+  "author": "SMYLD.org",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MFJamil/Transfer/issues"
+  },
+  "homepage": "https://github.com/MFJamil/Transfer#readme"
+}

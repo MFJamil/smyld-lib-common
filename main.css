@@ -1,0 +1,72 @@
+
+.testDiv{
+    opacity: 0;
+    width: 300px;
+    height: 150px;
+    border: 4px solid darkblue;
+    left: 250px;
+    background-color: lightskyblue;
+    border-radius: 25px;
+    position: absolute;
+    text-align: center;
+    font-weight: bold;
+    font-family: Arial, Helvetica, sans-serif;    
+    padding-top: 50px;
+    font-size: 30px;
+    transition-duration: 1s;
+        
+}
+
+
+.showEl {
+    opacity: 1;
+    background-color: lightpink !important; 
+    border: 4px solid red !important;
+    transform: translate(0px,-40px);
+}
+
+
+.showEl1 {
+    opacity: 1;
+    background-color: lightgreen !important; 
+    border: 4px solid green !important;
+    transform: translate(0px,-40px);
+}
+
+
+.basicDiv{
+    opacity: 0;
+    width: 400px;
+    height: 150px;
+    left: 0px;
+    position: absolute;
+    text-align: center;
+    font-weight: bold;
+    font-family: Arial, Helvetica, sans-serif;    
+    font-size: 30px;
+    transition-duration: 1s;
+}
+
+
+.nameDiv{
+    opacity: 0;
+    width: 400px;
+    height: 150px;
+    left: 0px;
+    position: absolute;
+    text-align: center;
+    font-weight: bold;
+    font-family: Arial, Helvetica, sans-serif;    
+    font-size: 30px;
+    transition-duration: 1s;
+}
+
+.showText {
+    opacity: 1;
+    transform: translate(650px, 0px);
+}
+
+.showLogo {
+    opacity: 1;
+    transform: translate(0px, -120px);
+}
