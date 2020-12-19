@@ -1,15 +1,18 @@
 {
-  "name": "smyld-lib-scroll-visible",
-  "version": "1.0.1",
-  "description": "Library that detects the elements when they are finally visible via scrolling",
-  "main": "main.js",
-  "private": false,
+  "name": "smyld-lib-common",
+  "version": "1.0.17",
+  "description": "SMYLD Javascript Core Library",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+   "private": false,
   "scripts": {
-    "test": "#"
+    "build": "tsc",
+    "test": "jest",
+    "coverage": "jest --coverage"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MFJamil/Transfer.git"
+    "url": "git+https://github.com/MFJamil/smyld-lib-common.git"
   },
   "keywords": [
     "JS",
@@ -17,12 +20,27 @@
     "Visible",
     "show",
     "on",
-    "scroll"
+    "scroll",
+    "typescript",
+    "ts"
   ],
   "author": "SMYLD.org",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/MFJamil/Transfer/issues"
+    "url": "https://github.com/MFJamil/smyld-lib-common/issues"
   },
-  "homepage": "https://github.com/MFJamil/Transfer#readme"
+  "homepage": "https://github.com/MFJamil/smyld-lib-common#readme",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.10",
+    "@babel/preset-env": "^7.12.11",
+    "@babel/preset-typescript": "^7.12.7",
+    "babel-jest": "^26.6.3",
+    "@types/jest": "^26.0.19",
+    "jest": "^26.6.3",
+    "ts-jest": "^26.4.4",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.1.3"
+  }
 }

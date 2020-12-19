@@ -6,6 +6,13 @@
     <title>Visible by Scrolling </title>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
     <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
+    <!--
+    <script src='dist/utils/Logger.js'></script>
+    <script src='dist/utils/LogMessage.js'></script>
+    <script src='dist/index.js'></script>
+    -->
+    <script type="module" src='https://cdn.jsdelivr.net/npm/smyld-lib-common@1.0.16/main.min.js'></script>
+        
     
 </head>
 <body>
@@ -15,7 +22,15 @@
     <div id="part1" class="testDiv" style="top:2400px;" shown="showEl">I am there</div>
     <div id="part1" class="testDiv" style="top:2700px;" shown="showEl">I am there</div>
     <div id="part1" class="testDiv" style="top:3000px;right:0px;" shown="showEl1">I am there</div>
-    
+    <script type="module">
+        import {LogMessage,Type,Logger} from './smyld-lib-common';
+        let myLogger = new Logger();
+        myLogger.log("TETOO");
+        myLogger.log(new LogMessage("Info Message",Type.Info));
+
+    </script>    
+
 </body>
-<script src='main.js'></script>
+
+<script  src='main.js'></script>
 </html>

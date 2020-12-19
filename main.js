@@ -43,4 +43,5 @@ function doInitVisibleElements(){
     
 }
 
+
 window.onload = function(){doInitVisibleElements();}

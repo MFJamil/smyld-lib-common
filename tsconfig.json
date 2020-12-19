@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+      "module": "commonjs",
+      "target": "esnext",
+      "declaration": true,
+      "declarationDir": "./dist",
+      "outDir": "./dist",
+      "moduleResolution": "node",
+      "lib": ["ES2017","es7","ES6","DOM"],
+      "noImplicitAny": true
+    },
+    "typedocOptions":{
+        "mode":"modules",
+        "out": "docs"
+    },
+    "include": [
+      "src/**/*"
+    ],
+    "exclude": ["node_modules","dist"]
+  }
