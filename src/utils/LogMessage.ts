@@ -10,8 +10,10 @@ export enum Type {
     text: string;
     date: Date;
   
-    constructor(msgText: string, msgType: Type) {
+    constructor(msgText: any, msgType: Type,compact:boolean=false) {
       this.type = msgType;
+      if (typeof msgText !== 'string')
+        msgText = compact?JSON.stringify(msgText):JSON.stringify(msgText,undefined,2);
       this.text = msgText;
       this.date = new Date();
     }

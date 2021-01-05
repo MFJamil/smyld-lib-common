@@ -12,24 +12,24 @@ export class Logger{
     //return new Intl.DateTimeFormat(this.locale, this.options).format();
   }
 
-  public log(text:string){
+  public log(text:any){
     console.log('%c[' + this.createDate() + '] : %c' + text,'color:blue;','color:black;');
   }
 
-  public info(text:string){
-    this.logMessage(new LogMessage(text,Type.Info));
+  public info(text:any,compact:boolean=false){
+    this.logMessage(new LogMessage(text,Type.Info,compact));
   }
-  public error(text:string){
-    this.logMessage(new LogMessage(text,Type.Error));
+  public error(text:any,compact:boolean=false){
+    this.logMessage(new LogMessage(text,Type.Error,compact));
   }
-  public warn(text:string){
-    this.logMessage(new LogMessage(text,Type.Warning));
+  public warn(text:any,compact:boolean=false){
+    this.logMessage(new LogMessage(text,Type.Warning,compact));
   }
-  public debug(text:string){
-    this.logMessage(new LogMessage(text,Type.Debug));
+  public debug(text:any,compact:boolean=false){
+    this.logMessage(new LogMessage(text,Type.Debug,compact));
   }
 
-  private debugOld(text:string){
+  private debugOld(text:any){
     console.debug('%c[' + this.createDate() + '] : %c' + text,'color:blue;','color:black;');
   }
 

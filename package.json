@@ -1,6 +1,6 @@
 {
   "name": "smyld-lib-common",
-  "version": "1.0.17",
+  "version": "1.0.21",
   "description": "SMYLD Javascript Core Library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
