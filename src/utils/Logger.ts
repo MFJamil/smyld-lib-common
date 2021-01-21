@@ -44,7 +44,11 @@ export class Logger{
           case Type.Warning:
             console.warn(this.composeLogMessage(msg),'color:blue;','color:' + this.getMsgLogColor(msg) + ';','color:blue;','color:black;');
             break;
-          default:
+          case Type.Debug:
+            console.debug(this.composeLogMessage(msg),'color:blue;','color:' + this.getMsgLogColor(msg) + ';','color:blue;','color:black;');
+            break;
+  
+            default:
             console.log(this.composeLogMessage(msg),'color:blue;','color:' + this.getMsgLogColor(msg) + ';','color:blue;','color:black;');
             break;
         }
