@@ -61,7 +61,7 @@ export class Logger{
         return 'red';
       case Type.Warning:
         return 'orang';
-      case Type.Warning:
+      case Type.Debug:
         return 'brown';
   
       default:
