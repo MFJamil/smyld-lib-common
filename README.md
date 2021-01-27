@@ -6,4 +6,5 @@ is a library that contains some core APIs that helps the SPA developer, this lib
 
 
 
-1 - Logging API:
+## 1 - Logging API:
+logging API facilitates the work on SPA, printing syntax highlighted messages with date and time stamp.
