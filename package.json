@@ -1,7 +1,7 @@
 {
   "name": "smyld-lib-common",
-  "version": "1.0.23",
-  "description": "SMYLD Javascript Core Library",
+  "version": "1.0.24",
+  "description": "SMYLD Javascript Core Library, contains several core APIs that benefit the developers working on SPA applications",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
    "private": false,
@@ -22,7 +22,10 @@
     "on",
     "scroll",
     "typescript",
-    "ts"
+    "ts",
+    "logging",
+    "console",
+    "format"
   ],
   "author": "SMYLD.org",
   "license": "MIT",
