@@ -6,16 +6,37 @@
     <title>Testing The Scroll Function</title>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
     <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
-    <script src='https://cdn.jsdelivr.net/npm/smyld-lib-common@1.0.25/main.min.js'></script>
-</head>
-<body>
-
-    <div id="smyld" class="nameDiv" style="top:2200px;" shown="showText">Welcome to</div>
-    <div id="smyld" class="nameDiv" style="top:2300px;" shown="showText">SMYLD Company</div>
-
-    <div id="part1" class="basicDiv" style="left:650px;top:2500px;" shown="showLogo"><img src="images/smyld_200.png"></div>
     <!--
-    <div id="part1" class="testDiv" style="top:2700px;" shown="showEl">I am there</div>
+    
+    <script src='src/main.js'></script>        
+    
+    -->
+    
+    <script src='https://cdn.jsdelivr.net/npm/smyld-lib-common@1.0.35/main.min.js'></script>
+    
+</head>
+<body style="height: 2500px;">
+
+    <div id="smyld" class="nameDiv" style="top:1000px;" shown="showText">Welcome to</div>
+    <div id="smyld" class="nameDiv" style="top:1100px;" shown="showText">SMYLD Company</div>
+
+    <div id="part1" class="basicDiv" style="left:650px;top:1300px;" shown="showLogo"><img src="images/smyld_200.png"></div>
+
+    <div id="part2" class="testDiv" style="top:1600px;left:340px;" shown="showBL final">One</div>
+    <div id="part3" class="testDiv" style="top:1600px;left:540px;" shown="final showGR">Time</div>
+    <div id="part4" class="testDiv" style="top:1600px;left:740px;" shown="final showBL">Animation</div>
+    <div id="part5" class="testDiv" style="top:1600px;left:940px;" shown="final showRD">Once</div>
+    <div id="part6" class="testDiv" style="top:1600px;left:1140px;" shown="final showYE">Visible</div>
+    
+
+    <!--
+    <script>
+        let el = document.getElementById("part2");
+        let classArray = el.getAttribute("shown").split(" ");
+        classArray.forEach(curClass =>el.classList.add(curClass));
+    </script>
+
+        <div id="part1" class="testDiv" style="top:2700px;" shown="showEl">I am there</div>
     <div id="part1" class="testDiv" style="top:3000px;right:0px;" shown="showEl1">I am there</div>
     -->
     

@@ -22,9 +22,9 @@ observer.observe(document.querySelector("#main-container"));
 const showAtt = "shown";
 
 function doHandleElment(el){
+    let classArray = el.getAttribute(showAtt);
+    classArray.split(" ").forEach(curClass =>el.classList.add(curClass));
     console.log(el);
-    el.classList.add(el.getAttribute(showAtt));
-
 }
 
 function doInitVisibleElements(){
