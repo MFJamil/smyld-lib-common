@@ -17,3 +17,6 @@ logging API facilitates the work on SPA, printing syntax highlighted messages wi
 HTML elements can define a special behavior upon being visible in the page. Using these APIs will add a nice affect to the web page design.
 
 
+![Library Commong Logging API usage - from smyld.org site](images/visible_api_demo.gif)
+
+
