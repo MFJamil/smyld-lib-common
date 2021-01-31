@@ -13,7 +13,7 @@ logging API facilitates the work on SPA, printing syntax highlighted messages wi
 ### Usage
 
 The library is available on NPM, as any standard JS/TS library, it can be easily installed via the following command:
-```
+```npm
 npm install smyld-lib-common
 ```
 
@@ -31,6 +31,8 @@ import MainLogger from 'smyld-lib-common';
 
 
 ```
+
+The output of the above code can be seen on the console of the browser as shown below:
 
 ![Library Commong Logging API usage - from smyld.org site](images/LogMessages.png)
 
