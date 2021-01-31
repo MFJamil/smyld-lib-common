@@ -51,7 +51,7 @@ The library can be referenced inside any page as a usual JavaScript library:
 <script src='https://cdn.jsdelivr.net/npm/smyld-lib-common@1.0.35/main.min.js'></script>
 ```
 
- In your code, you need to define an attribute inside **div** tag, with the name **shown**, this attribute should hold the **css class name(s)** that will be applied to your element once it is visible on the screen.
+ In your code, you need to define an attribute with the name **shown** inside the **div** element you want to animate when it is visible, this attribute should hold the **css class name(s)** that will be applied to your element once it is visible on the screen.
  
  ```html
   <div id="part1" class="testDiv" style="top:1600px;left:340px;" shown="myCssWhenVisible">One</div>
