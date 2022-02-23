@@ -1,16 +1,7 @@
 import { LogMessage, Type } from './LogMessage';
+import { LogSettings } from './LogSettings';
 
 
-/*
-function hookConsoleLog1(){
-  stdlog = console.log.bind(console);
-  clogs = [];
-  console.log = function(){
-    clogs.push(Array.from(arguments));
-    stdlog.apply(console, arguments);
-}
-}
-*/
 
 
 
@@ -22,6 +13,8 @@ export class Logger{
   logs:any = [];
   stdlog:Function;
   clogs:any=[];
+  settings:LogSettings = undefined;
+
 
   
   /**
@@ -39,19 +32,53 @@ export class Logger{
     //return new Intl.DateTimeFormat(this.locale, this.options).format();
   }
 
-  /*
-  private hookConsoleLog(){
-    this.stdlog = console.log.bind(this);
-    console.log = function(){
-      this.clogs.push(Array.from(arguments));
-      this.stdlog.apply(console, arguments);
+  public setLogSettings(logSettings:LogSettings){
+    this.settings = logSettings;
+    if (logSettings!==undefined){
+      if (logSettings.cacheLogs){
+        this.handleLogsCache();
+      }
     }
   }
-  */
   
-  public getLogs():any{
+
+  public doSaveMessage(type:String,args:any,origFun:Function){
+      let msg = String(Array.from(args));
+      let flag = msg.indexOf(" :: ");
+      if ((flag<0 )&& (flag>40)){
+        this.logs.push(type + "- " + msg);
+      }
+      origFun.apply(console,args)
+  }
+  
+  
+  private handleLogsCache(){
+    const instance = this;
+    const origFunLog = console.log;
+
+    console.log = function(){instance.doSaveMessage("Log   ",arguments,origFunLog);};
+    const origFunDbg = console.debug;
+    console.debug = function(){instance.doSaveMessage("Debug ",arguments,origFunDbg);};
+    const origFunInf = console.info;
+    console.info = function(){instance.doSaveMessage("Info  ",arguments,origFunInf);};
+    const origFunErr = console.error;
+    console.error = function(){instance.doSaveMessage("Error ",arguments,origFunErr);};
+    const origFunWarn = console.warn;
+    console.warn = function(){instance.doSaveMessage("Warn  ",arguments,origFunWarn);};
+  
+  }
+
+  public getCachedLogs():[]{
     return this.logs;
   }
+
+  
+
+  public getCachedLogsAsBlob():Blob{
+    return new Blob([this.logs.join("\n")], {type: "text/plain"});
+    
+  }
+  
   public log(text:any){
     //arguments.callee.caller.name to be checked later
     console.log('%c[' + this.createDate() + '] : %c' + text ,'color:blue;','color:black;');
@@ -109,14 +136,6 @@ export class Logger{
         return 'black';
     }
 }
-/*
-console.stdlog = console.log.bind(console);
-console.logs = [];
-console.log = function(){
-    console.logs.push(Array.from(arguments));
-    console.stdlog.apply(console, arguments);
-}
-*/
 
 private composeLogMessage(msg:LogMessage):any{
     let newMessage:any= '%c[' + this.createDate() +'] %c' + msg.type + ' %c:: %c' + msg.text;
