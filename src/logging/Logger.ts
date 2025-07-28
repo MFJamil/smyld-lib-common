@@ -14,6 +14,7 @@ export class Logger{
   stdlog:Function;
   clogs:any=[];
   settings:LogSettings = undefined;
+  source:string;
 
 
   
@@ -22,10 +23,15 @@ export class Logger{
    * reported messages, in order to 
    * 
    */
-  constructor (){
+  constructor (params:any){
     //this.hookConsoleLog();
+    if ((params!==null)&&(params!==undefined)){
+      if (params.source) this.source = params.source;
+    }
   }
   
+  
+
   private createDate():string{
     return new Date().toLocaleString();
     //return new Date().toLocaleString(this.locale, this.options);
@@ -43,12 +49,31 @@ export class Logger{
   
 
   public doSaveMessage(type:String,args:any,origFun:Function){
-      let msg = String(Array.from(args));
-      let flag = msg.indexOf(" :: ");
-      if ((flag<0 )&& (flag>40)){
-        this.logs.push(type + "- " + msg);
+    try{
+      if ((args)&&(args!==undefined)&&(Object.keys(args))){
+        let msg = '';
+        for (const [key, value] of Object.entries(args)) {
+            if (typeof value==='string') msg = msg + `${key}: ${value} `;
+        }
+        // Need to check the below 
+        //let flag = msg.indexOf(" :: ");
+        //if ((flag < 0) && (flag > 40)) {
+        if (msg!=='')
+            this.logs.push(type + "- " + msg);
+        }
       }
-      origFun.apply(console,args)
+      catch (error) {
+          if (error instanceof TypeError) {
+              console.log('-------- ' + typeof args);
+              this.logs.push(type + "- " + JSON.stringify(args));
+          }
+          else {
+              console.error("Error upon trying to save the messgae with the following args ", error);
+          }
+      }
+      finally{
+        origFun.apply(console,args)
+      }
   }
   
   
@@ -81,7 +106,7 @@ export class Logger{
   
   public log(text:any){
     //arguments.callee.caller.name to be checked later
-    console.log('%c[' + this.createDate() + '] : %c' + text ,'color:blue;','color:black;');
+    console.log('%c[' + this.createDate() + '] ' +  (this.source?this.source:'') + '  : %c' + text ,'color:blue;','color:black;');
   }
 
   public info(text:any,compact:boolean=false){
@@ -138,12 +163,12 @@ export class Logger{
 }
 
 private composeLogMessage(msg:LogMessage):any{
-    let newMessage:any= '%c[' + this.createDate() +'] %c' + msg.type + ' %c:: %c' + msg.text;
-    this.logs.push(newMessage.replaceAll('%c',''));
+    let newMessage:any= '%c[' + this.createDate() +'] ' +  (this.source?this.source:'') + ' - %c' + msg.type + ' %c:: %c' + msg.text;
+    MainLogger.logs.push(newMessage.replaceAll('%c',''));
     return newMessage;
   }
 };
-const MainLogger = new Logger();
+const MainLogger = new Logger(undefined);
 console.log("new Main Logger intance ....");
 export default MainLogger;
 
