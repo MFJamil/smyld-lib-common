@@ -1,38 +1,87 @@
 import { LogMessage, Type } from './LogMessage';
-import { LogSettings,LogLevel } from './LogSettings';
-import {LogManager} from "./LogManager";
+import { LogSettings, LogLevel } from './LogSettings';
+import { LogManager } from "./LogManager";
 
-
-
+/**
+ * @interface
+ * Configuration options for creating a Logger instance.
+ */
 interface LoggerConfig {
-  source: string;
-  logLevel?: LogLevel;
+    /**
+     * The source identifier for the logger.
+     * This will be displayed in log messages to identify which component generated the log.
+     */
+    source: string;
+    
+    /**
+     * The initial log level for the logger.
+     * If not provided, defaults to LogLevel.DEBUG for MainLogger and LogLevel.DEFAULT for other loggers.
+     * @see LogLevel
+     */
+    logLevel?: LogLevel;
 }
 
-export class Logger{
-  dateFormat:string = 'y-MM-dd_HH:mm:ss';
-  options = { month: "long", day: "numeric", year: "numeric" };
-  locale = "de-DE";
-  logs:any = [];
-  stdlog:Function;
-  clogs:any=[];
-  settings:LogSettings = undefined;
-  source:string;
-  private _logLevel:LogLevel = LogLevel.ALL;
+/**
+ * @class
+ * Core logging utility that provides methods for logging messages with different severity levels.
+ * Supports log caching, custom formatting, and integration with browser console.
+ */
+export class Logger {
+    /** Date format string for log timestamps */
+    dateFormat: string = 'y-MM-dd_HH:mm:ss';
+    
+    /** Date formatting options */
+    options = { month: "long", day: "numeric", year: "numeric" };
+    
+    /** Locale for date formatting */
+    locale = "de-DE";
+    
+    /** Array to store cached log messages */
+    logs: any[] = [];
+    
+    /** Reference to the standard log function */
+    stdlog: Function;
+    
+    /** Array to store console logs */
+    clogs: any[] = [];
+    
+    /** Logger settings */
+    settings: LogSettings = undefined;
+    
+    /** Source identifier for this logger */
+    source: string;
+    
+    /** Current log level */
+    private _logLevel: LogLevel = LogLevel.ALL;
 
 
   
   /**
-   * This constructor will be triggering the hooking on the console log to add the hack the 
-   * reported messages, in order to 
+   * Creates a new Logger instance and registers it with the LogManager.
    * 
+   * @param {LoggerConfig} [params={ source: 'MainLogger', logLevel: LogLevel.DEBUG }] - Configuration options
+   * 
+   * @example
+   * // Create the default MainLogger
+   * const mainLogger = new Logger();
+   * 
+   * @example
+   * // Create a custom logger for a specific component
+   * const authLogger = new Logger({ 
+   *   source: 'AuthService', 
+   *   logLevel: LogLevel.ERROR 
+   * });
    */
-  constructor (params:LoggerConfig={source:'MainLogger', logLevel: LogLevel.DEBUG}) {
+  constructor(params: LoggerConfig = { source: 'MainLogger', logLevel: LogLevel.DEBUG }) {
     const { source, logLevel } = params;
-    if (source !==undefined) this.source = source;
-    if (logLevel !==undefined){
+    
+    if (source !== undefined) {
+      this.source = source;
+    }
+    
+    if (logLevel !== undefined) {
       this._logLevel = logLevel;
-    } else{
+    } else {
       // Set different default log levels for MainLogger and non-MainLogger instances
       if (this.source === 'MainLogger') {
         this._logLevel = LogLevel.DEBUG;
@@ -41,7 +90,7 @@ export class Logger{
       }
     }
 
-    LogManager.getInstance().registerLogger(this.source,this)
+    LogManager.getInstance().registerLogger(this.source, this);
     
     // Enable log caching by default for MainLogger
     if (this.source === 'MainLogger') {
@@ -49,110 +98,213 @@ export class Logger{
     }
   }
 
-
+  /**
+   * Gets the current log level.
+   * 
+   * @returns {LogLevel} The current log level
+   */
   get logLevel(): LogLevel {
     return this._logLevel;
   }
 
+  /**
+   * Sets the log level.
+   * 
+   * @param {LogLevel} value - The new log level
+   */
   set logLevel(value: LogLevel) {
     this._logLevel = value;
   }
 
-  private createDate():string{
+  /**
+   * Creates a formatted date string for log timestamps.
+   * 
+   * @private
+   * @returns {string} Formatted date string
+   */
+  private createDate(): string {
     return new Date().toLocaleString();
-    //return new Date().toLocaleString(this.locale, this.options);
-    //return new Intl.DateTimeFormat(this.locale, this.options).format();
+    // Alternative date formatting options (currently commented out):
+    // return new Date().toLocaleString(this.locale, this.options);
+    // return new Intl.DateTimeFormat(this.locale, this.options).format();
   }
 
-  public setLogSettings(logSettings:LogSettings){
+  /**
+   * Applies settings to the logger.
+   * 
+   * @param {LogSettings} logSettings - The settings to apply
+   * 
+   * @example
+   * logger.setLogSettings({
+   *   cacheLogs: true,
+   *   logLevel: LogLevel.DEBUG
+   * });
+   */
+  public setLogSettings(logSettings: LogSettings): void {
     this.settings = logSettings;
-    if (logSettings!==undefined){
-      if (logSettings.cacheLogs){
+    
+    if (logSettings !== undefined) {
+      if (logSettings.cacheLogs) {
         this.handleLogsCache();
       }
-      if (logSettings.logLevel!==undefined){
-          this._logLevel = logSettings.logLevel;
+      
+      if (logSettings.logLevel !== undefined) {
+        this._logLevel = logSettings.logLevel;
       }
     }
   }
   
 
-  public doSaveMessage(type:String,args:any,origFun:Function){
-    try{
-      if ((args)&&(args!==undefined)&&(Object.keys(args))){
+  /**
+   * Saves a console message to the logs cache.
+   * This method is used internally by the console method overrides.
+   * 
+   * @param {string} type - The type of log message (Log, Debug, Info, Error, Warn)
+   * @param {any} args - The arguments passed to the console method
+   * @param {Function} origFun - The original console function to call after caching
+   */
+  public doSaveMessage(type: string, args: any, origFun: Function): void {
+    try {
+      if (args && args !== undefined && Object.keys(args)) {
         let msg = '';
         for (const [key, value] of Object.entries(args)) {
-            if (typeof value==='string') msg = msg + `${key}: ${value} `;
-        }
-        // Need to check the below 
-        //let flag = msg.indexOf(" :: ");
-        //if ((flag < 0) && (flag > 40)) {
-        if (msg!=='')
-            this.logs.push(type + "- " + msg);
-        }
-      }
-      catch (error) {
-          if (error instanceof TypeError) {
-              console.log('-------- ' + typeof args);
-              this.logs.push(type + "- " + JSON.stringify(args));
+          if (typeof value === 'string') {
+            msg = msg + `${key}: ${value} `;
           }
-          else {
-              console.error("Error upon trying to save the messgae with the following args ", error);
-          }
+        }
+        
+        // Cache the log message if it's not empty
+        if (msg !== '') {
+          this.logs.push(type + "- " + msg);
+        }
       }
-      finally{
-        origFun.apply(console,args)
+    } catch (error) {
+      if (error instanceof TypeError) {
+        console.log('-------- ' + typeof args);
+        this.logs.push(type + "- " + JSON.stringify(args));
+      } else {
+        console.error("Error upon trying to save the message with the following args ", error);
       }
+    } finally {
+      // Always call the original console function
+      origFun.apply(console, args);
+    }
   }
   
-  
-  private handleLogsCache(){
+  /**
+   * Sets up log caching by overriding console methods.
+   * When enabled, all console logs will be captured in the logs array.
+   * 
+   * @private
+   */
+  private handleLogsCache(): void {
     const instance = this;
+    
+    // Override console.log
     const origFunLog = console.log;
-
-    console.log = function(){instance.doSaveMessage("Log   ",arguments,origFunLog);};
+    console.log = function() { 
+      instance.doSaveMessage("Log   ", arguments, origFunLog); 
+    };
+    
+    // Override console.debug
     const origFunDbg = console.debug;
-    console.debug = function(){instance.doSaveMessage("Debug ",arguments,origFunDbg);};
+    console.debug = function() { 
+      instance.doSaveMessage("Debug ", arguments, origFunDbg); 
+    };
+    
+    // Override console.info
     const origFunInf = console.info;
-    console.info = function(){instance.doSaveMessage("Info  ",arguments,origFunInf);};
+    console.info = function() { 
+      instance.doSaveMessage("Info  ", arguments, origFunInf); 
+    };
+    
+    // Override console.error
     const origFunErr = console.error;
-    console.error = function(){instance.doSaveMessage("Error ",arguments,origFunErr);};
+    console.error = function() { 
+      instance.doSaveMessage("Error ", arguments, origFunErr); 
+    };
+    
+    // Override console.warn
     const origFunWarn = console.warn;
-    console.warn = function(){instance.doSaveMessage("Warn  ",arguments,origFunWarn);};
-  
+    console.warn = function() { 
+      instance.doSaveMessage("Warn  ", arguments, origFunWarn); 
+    };
   }
 
-  public getCachedLogs():[]{
+  /**
+   * Retrieves all cached log messages.
+   * 
+   * @returns {any[]} Array of cached log messages
+   * 
+   * @example
+   * const logs = logger.getCachedLogs();
+   * console.log(`Collected ${logs.length} log entries`);
+   */
+  public getCachedLogs(): any[] {
     return this.logs;
   }
 
-  
-
-  public getCachedLogsAsBlob():any{
+  /**
+   * Retrieves cached logs as a Blob object for downloading or storage.
+   * Works in both browser and Node.js environments.
+   * 
+   * @returns {Blob} A Blob containing all cached logs
+   * 
+   * @example
+   * // In browser: Create a download link for logs
+   * const blob = logger.getCachedLogsAsBlob();
+   * const url = URL.createObjectURL(blob);
+   * const a = document.createElement('a');
+   * a.href = url;
+   * a.download = 'application-logs.txt';
+   * a.click();
+   */
+  public getCachedLogsAsBlob(): any {
     // Check if Blob is available (browser environment)
     if (typeof Blob !== 'undefined') {
-      return new Blob([this.logs.join("\n")], {type: "text/plain"});
+      return new Blob([this.logs.join("\n")], { type: "text/plain" });
     } 
     // In Node.js environment, create a global Blob polyfill if it doesn't exist
     else {
       if (typeof global !== 'undefined' && !global.Blob) {
         // Simple Blob polyfill for Node.js environment
         class NodeBlob {
+          /** MIME type of the blob */
           type: string;
+          
+          /** Size of the blob in bytes */
           size: number;
+          
+          /** Content of the blob */
           private content: string;
 
+          /**
+           * Creates a NodeBlob instance.
+           * 
+           * @param {any[]} parts - Array of parts to concatenate
+           * @param {object} [options={}] - Blob options
+           */
           constructor(parts: any[], options: any = {}) {
             this.type = options.type || '';
             this.content = parts.join('');
             this.size = this.content.length;
           }
 
-          text() {
+          /**
+           * Returns the blob content as text.
+           * 
+           * @returns {Promise<string>} Promise resolving to the blob content
+           */
+          text(): Promise<string> {
             return Promise.resolve(this.content);
           }
 
-          arrayBuffer() {
+          /**
+           * Returns the blob content as an ArrayBuffer.
+           * 
+           * @returns {Promise<ArrayBuffer>} Promise resolving to the blob content as ArrayBuffer
+           */
+          arrayBuffer(): Promise<ArrayBuffer> {
             return Promise.resolve(new TextEncoder().encode(this.content).buffer);
           }
         }
@@ -162,84 +314,234 @@ export class Logger{
       }
 
       // Now we can use the global Blob
-      return new (global as any).Blob([this.logs.join("\n")], {type: "text/plain"});
+      return new (global as any).Blob([this.logs.join("\n")], { type: "text/plain" });
     }
   }
   
-  public log(text:any){
-    //arguments.callee.caller.name to be checked later
-    console.log('%c[' + this.createDate() + '] ' +  (this.source?this.source:'') + '  : %c' + text ,'color:blue;','color:black;');
+  /**
+   * Logs a message to the console with basic formatting.
+   * 
+   * @param {any} text - The message to log
+   */
+  public log(text: any): void {
+    console.log(
+      '%c[' + this.createDate() + '] ' + (this.source ? this.source : '') + '  : %c' + text,
+      'color:blue;',
+      'color:black;'
+    );
   }
 
-  public info(text:any,compact:boolean=false){
-    
-    this.logMessage(new LogMessage(text,Type.Info,compact));
-  }
-  public error(text:any,compact:boolean=false){
-    this.logMessage(new LogMessage(text,Type.Error,compact));
-  }
-  public warn(text:any,compact:boolean=false){
-    this.logMessage(new LogMessage(text,Type.Warning,compact));
-  }
-  public debug(text:any,compact:boolean=false){
-    this.logMessage(new LogMessage(text,Type.Debug,compact));
+  /**
+   * Logs an informational message.
+   * Only displayed if the current log level is INFO or higher.
+   * 
+   * @param {any} text - The message or object to log
+   * @param {boolean} [compact=false] - Whether to format objects in compact mode
+   * 
+   * @example
+   * logger.info("Operation completed successfully");
+   * 
+   * @example
+   * // Log an object with pretty-printing
+   * logger.info({ user: "john", status: "active" });
+   * 
+   * @example
+   * // Log an object in compact format
+   * logger.info({ user: "john", status: "active" }, true);
+   */
+  public info(text: any, compact: boolean = false): void {
+    this.logMessage(new LogMessage(text, Type.Info, compact));
   }
 
-
-
-  private debugOld(text:any){
-    console.debug('%c[' + this.createDate() + '] : %c' + text,'color:blue;','color:black;');
+  /**
+   * Logs an error message.
+   * Only displayed if the current log level is ERROR or higher.
+   * 
+   * @param {any} text - The error message or object to log
+   * @param {boolean} [compact=false] - Whether to format objects in compact mode
+   * 
+   * @example
+   * logger.error("Failed to connect to the server");
+   * 
+   * @example
+   * // Log an error object
+   * try {
+   *   // Some code that might throw
+   * } catch (error) {
+   *   logger.error(error);
+   * }
+   */
+  public error(text: any, compact: boolean = false): void {
+    this.logMessage(new LogMessage(text, Type.Error, compact));
   }
 
-  logMessage(msg:LogMessage){
+  /**
+   * Logs a warning message.
+   * Only displayed if the current log level is WARN or higher.
+   * 
+   * @param {any} text - The warning message or object to log
+   * @param {boolean} [compact=false] - Whether to format objects in compact mode
+   * 
+   * @example
+   * logger.warn("API rate limit approaching");
+   */
+  public warn(text: any, compact: boolean = false): void {
+    this.logMessage(new LogMessage(text, Type.Warning, compact));
+  }
+
+  /**
+   * Logs a debug message.
+   * Only displayed if the current log level is DEBUG or higher.
+   * 
+   * @param {any} text - The debug message or object to log
+   * @param {boolean} [compact=false] - Whether to format objects in compact mode
+   * 
+   * @example
+   * logger.debug("Variable state:", { count: 5, items: [...] });
+   */
+  public debug(text: any, compact: boolean = false): void {
+    this.logMessage(new LogMessage(text, Type.Debug, compact));
+  }
+
+  /**
+   * Legacy debug method.
+   * @deprecated Use debug() instead
+   * @private
+   */
+  private debugOld(text: any): void {
+    console.debug(
+      '%c[' + this.createDate() + '] : %c' + text,
+      'color:blue;',
+      'color:black;'
+    );
+  }
+
+  /**
+   * Processes and displays a log message based on its type and the current log level.
+   * 
+   * @param {LogMessage} msg - The log message to process
+   */
+  public logMessage(msg: LogMessage): void {
+    // Don't log anything if logging is turned off
     if (this._logLevel === LogLevel.OFF) return;
 
     switch (msg.type) {
       case Type.Info:
-        if (this._logLevel >= LogLevel.INFO)
-          console.info(this.composeLogMessage(msg), 'color:blue;', 'color:' + this.getMsgLogColor(msg) + ';', 'color:blue;', 'color:black;');
+        if (this._logLevel >= LogLevel.INFO) {
+          console.info(
+            this.composeLogMessage(msg), 
+            'color:blue;', 
+            'color:' + this.getMsgLogColor(msg) + ';', 
+            'color:blue;', 
+            'color:black;'
+          );
+        }
         break;
+        
       case Type.Error:
-        if (this._logLevel >= LogLevel.ERROR)
-          console.error(this.composeLogMessage(msg), 'color:blue;', 'color:' + this.getMsgLogColor(msg) + ';', 'color:blue;', this.getMsgLogColor(msg));
+        if (this._logLevel >= LogLevel.ERROR) {
+          console.error(
+            this.composeLogMessage(msg), 
+            'color:blue;', 
+            'color:' + this.getMsgLogColor(msg) + ';', 
+            'color:blue;', 
+            this.getMsgLogColor(msg)
+          );
+        }
         break;
+        
       case Type.Warning:
-        if (this._logLevel >= LogLevel.WARN)
-          console.warn(this.composeLogMessage(msg), 'color:blue;', 'color:' + this.getMsgLogColor(msg) + ';', 'color:blue;', 'color:black;');
+        if (this._logLevel >= LogLevel.WARN) {
+          console.warn(
+            this.composeLogMessage(msg), 
+            'color:blue;', 
+            'color:' + this.getMsgLogColor(msg) + ';', 
+            'color:blue;', 
+            'color:black;'
+          );
+        }
         break;
+        
       case Type.Debug:
-        if (this._logLevel >= LogLevel.DEBUG)
-          console.debug(this.composeLogMessage(msg), 'color:blue;', 'color:' + this.getMsgLogColor(msg) + ';', 'color:blue;', 'color:black;');
+        if (this._logLevel >= LogLevel.DEBUG) {
+          console.debug(
+            this.composeLogMessage(msg), 
+            'color:blue;', 
+            'color:' + this.getMsgLogColor(msg) + ';', 
+            'color:blue;', 
+            'color:black;'
+          );
+        }
         break;
 
       default:
-        if(this._logLevel >= LogLevel.DEFAULT)
-          console.log(this.composeLogMessage(msg), 'color:blue;', 'color:' + this.getMsgLogColor(msg) + ';', 'color:blue;', 'color:black;');
+        if (this._logLevel >= LogLevel.DEFAULT) {
+          console.log(
+            this.composeLogMessage(msg), 
+            'color:blue;', 
+            'color:' + this.getMsgLogColor(msg) + ';', 
+            'color:blue;', 
+            'color:black;'
+          );
+        }
         break;
     }
   }
-  private getMsgLogColor(msg:LogMessage):string{
-    switch(msg.type){
+
+  /**
+   * Determines the color to use for a log message based on its type.
+   * 
+   * @private
+   * @param {LogMessage} msg - The log message
+   * @returns {string} The CSS color value
+   */
+  private getMsgLogColor(msg: LogMessage): string {
+    switch (msg.type) {
       case Type.Info:
         return 'green';
       case Type.Error:
         return 'red';
       case Type.Warning:
-        return 'orang';
+        return 'orange'; // Fixed typo: 'orang' -> 'orange'
       case Type.Debug:
         return 'purple';
       default:
         return 'black';
     }
-}
+  }
 
-private composeLogMessage(msg:LogMessage):any{
-    let newMessage:any= '%c[' + this.createDate() +'] ' +  (this.source?this.source:'') + ' - %c' + msg.type + ' %c:: %c' + msg.text;
-    MainLogger.logs.push(newMessage.replaceAll('%c',''));
+  /**
+   * Composes a formatted log message string with styling placeholders.
+   * 
+   * @private
+   * @param {LogMessage} msg - The log message to format
+   * @returns {string} Formatted message string with CSS style placeholders
+   */
+  private composeLogMessage(msg: LogMessage): string {
+    let newMessage: string = '%c[' + this.createDate() + '] ' + 
+                           (this.source ? this.source : '') + 
+                           ' - %c' + msg.type + 
+                           ' %c:: %c' + msg.text;
+    
+    // Store a clean version of the message (without style placeholders) in the logs array
+    // Using replace with global regex instead of replaceAll for better compatibility
+    MainLogger.logs.push(newMessage.replace(/%c/g, ''));
+    
     return newMessage;
   }
-};
+}
+
+/**
+ * Default logger instance for the application.
+ * This is the main entry point for logging and is exported as the default export.
+ * 
+ * @example
+ * import MainLogger from 'smyld-lib-common';
+ * 
+ * MainLogger.info('Application started');
+ * MainLogger.debug('Debug information', { version: '1.0.0' });
+ */
 const MainLogger = new Logger();
-console.log("new Main Logger intance ....");
+console.log("new Main Logger instance created");
 export default MainLogger;
 
