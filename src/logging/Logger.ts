@@ -1,10 +1,13 @@
 import { LogMessage, Type } from './LogMessage';
-import { LogSettings } from './LogSettings';
+import { LogSettings,LogLevel } from './LogSettings';
+import {LogManager} from "./LogManager";
 
 
 
-
-
+interface LoggerConfig {
+  source: string;
+  logLevel?: LogLevel;
+}
 
 export class Logger{
   dateFormat:string = 'y-MM-dd_HH:mm:ss';
@@ -15,6 +18,7 @@ export class Logger{
   clogs:any=[];
   settings:LogSettings = undefined;
   source:string;
+  private _logLevel:LogLevel = LogLevel.ALL;
 
 
   
@@ -23,14 +27,36 @@ export class Logger{
    * reported messages, in order to 
    * 
    */
-  constructor (params:any){
-    //this.hookConsoleLog();
-    if ((params!==null)&&(params!==undefined)){
-      if (params.source) this.source = params.source;
+  constructor (params:LoggerConfig={source:'MainLogger', logLevel: LogLevel.DEBUG}) {
+    const { source, logLevel } = params;
+    if (source !==undefined) this.source = source;
+    if (logLevel !==undefined){
+      this._logLevel = logLevel;
+    } else{
+      // Set different default log levels for MainLogger and non-MainLogger instances
+      if (this.source === 'MainLogger') {
+        this._logLevel = LogLevel.DEBUG;
+      } else {
+        this._logLevel = LogLevel.DEFAULT;
+      }
+    }
+
+    LogManager.getInstance().registerLogger(this.source,this)
+    
+    // Enable log caching by default for MainLogger
+    if (this.source === 'MainLogger') {
+      this.handleLogsCache();
     }
   }
-  
-  
+
+
+  get logLevel(): LogLevel {
+    return this._logLevel;
+  }
+
+  set logLevel(value: LogLevel) {
+    this._logLevel = value;
+  }
 
   private createDate():string{
     return new Date().toLocaleString();
@@ -43,6 +69,9 @@ export class Logger{
     if (logSettings!==undefined){
       if (logSettings.cacheLogs){
         this.handleLogsCache();
+      }
+      if (logSettings.logLevel!==undefined){
+          this._logLevel = logSettings.logLevel;
       }
     }
   }
@@ -99,9 +128,42 @@ export class Logger{
 
   
 
-  public getCachedLogsAsBlob():Blob{
-    return new Blob([this.logs.join("\n")], {type: "text/plain"});
-    
+  public getCachedLogsAsBlob():any{
+    // Check if Blob is available (browser environment)
+    if (typeof Blob !== 'undefined') {
+      return new Blob([this.logs.join("\n")], {type: "text/plain"});
+    } 
+    // In Node.js environment, create a global Blob polyfill if it doesn't exist
+    else {
+      if (typeof global !== 'undefined' && !global.Blob) {
+        // Simple Blob polyfill for Node.js environment
+        class NodeBlob {
+          type: string;
+          size: number;
+          private content: string;
+
+          constructor(parts: any[], options: any = {}) {
+            this.type = options.type || '';
+            this.content = parts.join('');
+            this.size = this.content.length;
+          }
+
+          text() {
+            return Promise.resolve(this.content);
+          }
+
+          arrayBuffer() {
+            return Promise.resolve(new TextEncoder().encode(this.content).buffer);
+          }
+        }
+
+        // Add the Blob to the global object
+        (global as any).Blob = NodeBlob;
+      }
+
+      // Now we can use the global Blob
+      return new (global as any).Blob([this.logs.join("\n")], {type: "text/plain"});
+    }
   }
   
   public log(text:any){
@@ -123,29 +185,38 @@ export class Logger{
     this.logMessage(new LogMessage(text,Type.Debug,compact));
   }
 
+
+
   private debugOld(text:any){
     console.debug('%c[' + this.createDate() + '] : %c' + text,'color:blue;','color:black;');
   }
 
   logMessage(msg:LogMessage){
-    switch(msg.type){
-          case Type.Info:
-            console.info(this.composeLogMessage(msg),'color:blue;','color:' + this.getMsgLogColor(msg) + ';','color:blue;','color:black;');
-            break;
-          case Type.Error:
-            console.error(this.composeLogMessage(msg),'color:blue;','color:' + this.getMsgLogColor(msg) + ';','color:blue;',this.getMsgLogColor(msg));
-            break;
-          case Type.Warning:
-            console.warn(this.composeLogMessage(msg),'color:blue;','color:' + this.getMsgLogColor(msg) + ';','color:blue;','color:black;');
-            break;
-          case Type.Debug:
-            console.debug(this.composeLogMessage(msg),'color:blue;','color:' + this.getMsgLogColor(msg) + ';','color:blue;','color:black;');
-            break;
-  
-            default:
-            console.log(this.composeLogMessage(msg),'color:blue;','color:' + this.getMsgLogColor(msg) + ';','color:blue;','color:black;');
-            break;
-        }
+    if (this._logLevel === LogLevel.OFF) return;
+
+    switch (msg.type) {
+      case Type.Info:
+        if (this._logLevel >= LogLevel.INFO)
+          console.info(this.composeLogMessage(msg), 'color:blue;', 'color:' + this.getMsgLogColor(msg) + ';', 'color:blue;', 'color:black;');
+        break;
+      case Type.Error:
+        if (this._logLevel >= LogLevel.ERROR)
+          console.error(this.composeLogMessage(msg), 'color:blue;', 'color:' + this.getMsgLogColor(msg) + ';', 'color:blue;', this.getMsgLogColor(msg));
+        break;
+      case Type.Warning:
+        if (this._logLevel >= LogLevel.WARN)
+          console.warn(this.composeLogMessage(msg), 'color:blue;', 'color:' + this.getMsgLogColor(msg) + ';', 'color:blue;', 'color:black;');
+        break;
+      case Type.Debug:
+        if (this._logLevel >= LogLevel.DEBUG)
+          console.debug(this.composeLogMessage(msg), 'color:blue;', 'color:' + this.getMsgLogColor(msg) + ';', 'color:blue;', 'color:black;');
+        break;
+
+      default:
+        if(this._logLevel >= LogLevel.DEFAULT)
+          console.log(this.composeLogMessage(msg), 'color:blue;', 'color:' + this.getMsgLogColor(msg) + ';', 'color:blue;', 'color:black;');
+        break;
+    }
   }
   private getMsgLogColor(msg:LogMessage):string{
     switch(msg.type){
@@ -168,7 +239,7 @@ private composeLogMessage(msg:LogMessage):any{
     return newMessage;
   }
 };
-const MainLogger = new Logger(undefined);
+const MainLogger = new Logger();
 console.log("new Main Logger intance ....");
 export default MainLogger;
 

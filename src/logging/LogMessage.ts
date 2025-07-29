@@ -3,7 +3,8 @@ export enum Type {
     Info = 'INFO', 
     Warning = 'WARN',
     Debug = 'DEBUG',
-    Default = 'LOG'}
+    Default = 'LOG'
+}
   
   export class LogMessage {
     type: Type;
