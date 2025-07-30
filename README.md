@@ -203,4 +203,3 @@ The library can be referenced inside any page as a usual JavaScript library:
  
 ![Library Common Logging API usage - from smyld.org site](images/visible_api_demo.gif)
 
-
