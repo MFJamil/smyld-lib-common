@@ -1,6 +1,6 @@
 {
   "name": "smyld-lib-common",
-  "version": "1.4.6",
+  "version": "1.4.7",
   "description": "SMYLD Javascript Core Library, contains several core APIs that benefit the developers working on SPA applications",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
