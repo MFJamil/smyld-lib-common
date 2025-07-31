@@ -93,6 +93,24 @@ describe('Logger', () => {
       expect(logsBlob).toBeInstanceOf(Blob);
       expect(logsBlob.type).toBe('text/plain');
     });
+    
+    test('should delete cached logs when requested', () => {
+      // Clear existing logs
+      MainLogger.logs = [];
+      
+      // Log some messages
+      MainLogger.info('Test message for deletion 1');
+      MainLogger.warn('Test message for deletion 2');
+      
+      // Verify logs were cached
+      expect(MainLogger.getCachedLogs().length).toBeGreaterThan(0);
+      
+      // Delete cached logs
+      MainLogger.deleteCachedLogs();
+      
+      // Verify logs were deleted
+      expect(MainLogger.getCachedLogs().length).toBe(0);
+    });
   });
 
   describe('Custom Logger', () => {
@@ -116,6 +134,27 @@ describe('Logger', () => {
       const logManager = LogManager.getInstance();
       expect(logManager.hasLogger(loggerName)).toBe(true);
       expect(logManager.getLogger(loggerName)).toBe(customLogger);
+    });
+    
+    test('should retrieve the same logger instance from LogManager', () => {
+      const loggerName = 'ManagedLogger';
+      
+      // Create a logger
+      const logger1 = new Logger({ source: loggerName });
+      
+      // Get the logger from LogManager
+      const logManager = LogManager.getInstance();
+      const retrievedLogger = logManager.getLogger(loggerName);
+      
+      // It should be the same instance
+      expect(retrievedLogger).toBe(logger1);
+      
+      // Create a logger with a different source
+      const differentLogger = new Logger({ source: 'DifferentLogger' });
+      
+      // It should be a different instance
+      expect(logManager.getLogger('DifferentLogger')).toBe(differentLogger);
+      expect(logManager.getLogger('DifferentLogger')).not.toBe(logger1);
     });
 
     test('should respect log level settings', () => {
@@ -163,6 +202,36 @@ describe('Logger', () => {
       
       infoSpy.restore();
     });
+
+    test('should initialize with LogManager log level when not specified', () => {
+      // Set LogManager log level
+      const logManager = LogManager.getInstance();
+      logManager.setGeneralLogLevel(LogLevel.WARN);
+      
+      // Create logger without specifying log level
+      const logger = new Logger({ source: 'LogManagerLevelLogger' });
+      
+      // Logger should have LogManager's log level
+      expect(logger.logLevel).toBe(LogLevel.WARN);
+      
+      // Test that it respects this level
+      const debugSpy = setupConsoleSpy('debug');
+      const warnSpy = setupConsoleSpy('warn');
+      
+      // Debug should not be logged (below WARN level)
+      logger.debug('This should not be logged');
+      expect(debugSpy.spy).not.toHaveBeenCalled();
+      
+      // Warn should be logged
+      logger.warn('This should be logged');
+      expect(warnSpy.spy).toHaveBeenCalled();
+      
+      debugSpy.restore();
+      warnSpy.restore();
+      
+      // Reset LogManager log level for other tests
+      logManager.setGeneralLogLevel(LogLevel.DEBUG);
+    });
   });
 
   describe('LogManager', () => {
@@ -170,6 +239,22 @@ describe('Logger', () => {
       const instance1 = LogManager.getInstance();
       const instance2 = LogManager.getInstance();
       expect(instance1).toBe(instance2);
+    });
+
+    test('should store and retrieve log level via getter', () => {
+      const logManager = LogManager.getInstance();
+      
+      // Store the initial log level
+      const initialLogLevel = logManager.logLevel;
+      
+      // Set a different log level
+      logManager.setGeneralLogLevel(LogLevel.WARN);
+      
+      // Check that logLevel getter returns the new value
+      expect(logManager.logLevel).toBe(LogLevel.WARN);
+      
+      // Reset to initial log level for other tests
+      logManager.setGeneralLogLevel(initialLogLevel);
     });
 
     test('should set log level for all loggers', () => {
@@ -184,6 +269,9 @@ describe('Logger', () => {
       // Check that all loggers have the new log level
       expect(logger1.logLevel).toBe(LogLevel.ERROR);
       expect(logger2.logLevel).toBe(LogLevel.ERROR);
+      
+      // Check that logManager's logLevel is also updated
+      expect(logManager.logLevel).toBe(LogLevel.ERROR);
     });
 
     test('should set log level for specific logger', () => {

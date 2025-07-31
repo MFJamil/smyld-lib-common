@@ -72,9 +72,13 @@ export class Logger {
    *   logLevel: LogLevel.ERROR 
    * });
    */
-  constructor(params: LoggerConfig = { source: 'MainLogger', logLevel: LogLevel.DEBUG }) {
+  constructor(params: LoggerConfig = { source: 'MainLogger', logLevel: LogLevel.DEBUG}) {
     const { source, logLevel } = params;
-    
+    if (LogManager.getInstance().hasLogger(source) && this.settings.pooledLoggers) {
+      // If a logger with the same source already exists, return that instance
+      return LogManager.getInstance().getLogger(source);
+    }
+
     if (source !== undefined) {
       this.source = source;
     }
@@ -85,6 +89,9 @@ export class Logger {
       // Set different default log levels for MainLogger and non-MainLogger instances
       if (this.source === 'MainLogger') {
         this._logLevel = LogLevel.DEBUG;
+      }else if (LogManager.getInstance().logLevel !== undefined) {
+        this._logLevel = LogManager.getInstance().logLevel;
+        // Fallback to DEFAULT log level if not set
       } else {
         this._logLevel = LogLevel.DEFAULT;
       }
@@ -242,6 +249,18 @@ export class Logger {
    */
   public getCachedLogs(): any[] {
     return this.logs;
+  }
+
+  
+  /**
+   * Deletes all cached logs.
+   * This will clear the logs array and remove all stored log messages.
+   * 
+   * @example
+   * logger.deleteCachedLogs();
+   */
+  public deleteCachedLogs(): void {
+    this.logs = [];
   }
 
   /**

@@ -13,12 +13,20 @@ export class LogManager {
     /** Map of logger names to logger instances */
     private _loggers: Map<string, Logger>;
 
+    private _logLevel: LogLevel = undefined;
+
     /**
      * Private constructor to prevent direct instantiation.
      * Use getInstance() instead.
      */
     private constructor() {
         this._loggers = new Map<string, Logger>();
+    }
+
+
+
+    get logLevel(): LogLevel {
+        return this._logLevel;
     }
 
     /**
@@ -96,6 +104,7 @@ export class LogManager {
      * }
      */
     public setGeneralLogLevel(logLevel: LogLevel): void {
+        this._logLevel = logLevel;
         this._loggers.forEach(logger => {
             logger.logLevel = logLevel;
         });

@@ -36,7 +36,12 @@ export interface LogSettings {
      * @see LogLevel
      */
     logLevel?: LogLevel;
-    
+
+    /**
+     * Pooled Loggers will reuse existing logger instances with the same source.
+     */
+    pooledLoggers?: boolean;
+
     /**
      * Additional custom properties.
      */

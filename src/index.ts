@@ -31,7 +31,7 @@ import { Logger } from './logging/Logger';
  * Default logger instance for the application.
  * This is the main entry point for logging and is exported as the default export.
  */
-const MainLogger = new Logger(undefined);
+const MainLogger = new Logger();
 
 // Export all components of the library
 export { VueLoggerPlugin } from './VueLoggerPlugin';
