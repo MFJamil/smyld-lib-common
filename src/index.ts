@@ -27,6 +27,9 @@
 
 import { Logger } from './logging/Logger';
 
+
+console.log("smyld-lib-common: Initializing logging library...");
+
 /**
  * Default logger instance for the application.
  * This is the main entry point for logging and is exported as the default export.

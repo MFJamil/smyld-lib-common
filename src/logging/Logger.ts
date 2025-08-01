@@ -74,7 +74,8 @@ export class Logger {
    */
   constructor(params: LoggerConfig = { source: 'MainLogger', logLevel: LogLevel.DEBUG}) {
     const { source, logLevel } = params;
-    if (LogManager.getInstance().hasLogger(source) && this.settings.pooledLoggers) {
+
+    if (LogManager.getInstance().hasLogger(source) && this.settings?.pooledLoggers) {
       // If a logger with the same source already exists, return that instance
       return LogManager.getInstance().getLogger(source);
     }
