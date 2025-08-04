@@ -34,7 +34,7 @@ console.log("smyld-lib-common: Initializing logging library...");
  * Default logger instance for the application.
  * This is the main entry point for logging and is exported as the default export.
  */
-const MainLogger = new Logger();
+
 
 // Export all components of the library
 export { VueLoggerPlugin } from './VueLoggerPlugin';
@@ -43,9 +43,5 @@ export { LogManager } from './logging/LogManager';
 export { LogLevel, LogSettings } from './logging/LogSettings';
 export { LogMessage, Type } from './logging/LogMessage';
 
-/**
- * Default export is the MainLogger instance for convenient usage.
- */
-export default MainLogger;
-
-
+import MainLogger from "./logging/Logger";
+export default MainLogger
