@@ -554,14 +554,14 @@ export class Logger {
 /**
  * Default logger instance for the application.
  * This is the main entry point for logging and is exported as the default export.
- * 
+ *
  * @example
  * import MainLogger from 'smyld-lib-common';
- * 
+ *
  * MainLogger.info('Application started');
  * MainLogger.debug('Debug information', { version: '1.0.0' });
  */
 const MainLogger = new Logger();
-console.log("new Main Logger instance created");
+
 export default MainLogger;
 
