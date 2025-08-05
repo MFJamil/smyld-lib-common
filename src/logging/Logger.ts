@@ -46,13 +46,15 @@ export class Logger {
     clogs: any[] = [];
     
     /** Logger settings */
-    settings: LogSettings = undefined;
+    settings: LogSettings = { cacheLogs: false, logLevel: LogLevel.DEFAULT };
     
     /** Source identifier for this logger */
     source: string;
     
     /** Current log level */
     private _logLevel: LogLevel = LogLevel.ALL;
+
+    
 
 
   
@@ -101,9 +103,8 @@ export class Logger {
     LogManager.getInstance().registerLogger(this.source, this);
     
     // Enable log caching by default for MainLogger
-    if (this.source === 'MainLogger') {
-      this.handleLogsCache();
-    }
+    this.handleLogsCache();
+    
   }
 
   /**
@@ -181,8 +182,8 @@ export class Logger {
           }
         }
         
-        // Cache the log message if it's not empty
-        if (msg !== '') {
+        // Cache the log message if it's not empty and is not formatted by the logger itself
+        if ((msg !== '') &&(msg.indexOf('%c')===-1)) {
           this.logs.push(type + "- " + msg);
         }
       }
@@ -206,6 +207,7 @@ export class Logger {
    * @private
    */
   private handleLogsCache(): void {
+    if (this.source !== 'MainLogger' || (this.settings!==undefined && !this.settings.cacheLogs)) return;
     const instance = this;
     
     // Override console.log

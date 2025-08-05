@@ -77,12 +77,13 @@ describe('Logger', () => {
     });
 
     test('should cache logs when enabled', () => {
+      const testLogger:Logger = new Logger({source:'testCachedLogs'})
       // Clear existing logs
-      MainLogger.logs = [];
+      MainLogger.deleteCachedLogs();
       
       // Log some messages
-      MainLogger.info('Test message 1');
-      MainLogger.warn('Test message 2');
+      testLogger.info('Test message 1');
+      testLogger.warn('Test message 2');
       
       // Check that logs were cached
       const cachedLogs = MainLogger.getCachedLogs();
@@ -92,6 +93,21 @@ describe('Logger', () => {
       const logsBlob = MainLogger.getCachedLogsAsBlob();
       expect(logsBlob).toBeInstanceOf(Blob);
       expect(logsBlob.type).toBe('text/plain');
+    });
+    test('Cached logs should not be duplicated', () => {
+      const testLogger:Logger = new Logger({source:'testDuplicateCachedLogs'})
+      // Clear existing logs
+      MainLogger.deleteCachedLogs();
+      MainLogger.setLogSettings({ cacheLogs: true });
+      // Log some messages
+      testLogger.info('Test message 1');
+      testLogger.warn('Test message 2');
+      
+      // Check that logs were cached
+      const cachedLogs = MainLogger.getCachedLogs();
+      console.log('Cached Logs :', cachedLogs);
+      
+      expect(cachedLogs.filter(log =>log.indexOf('Test message 1') !== -1).length).toBe(1);
     });
     
     test('should delete cached logs when requested', () => {
