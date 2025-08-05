@@ -142,6 +142,19 @@ describe('Logger', () => {
       infoSpy.restore();
     });
 
+    test('Should have a special source Log for nested Source names', () => {
+      const customLogger = new Logger({ source: 'application.components.gui.TestField' });
+      expect(customLogger.source).toBe('application.components.gui.TestField');
+      expect(customLogger.sourceLog).toBe('a.c.g.TestField');
+
+      const infoSpy = setupConsoleSpy('info');
+
+      customLogger.info('Custom logger message');
+      expect(infoSpy.spy).toHaveBeenCalled();
+
+      infoSpy.restore();
+    });
+
     test('should register with LogManager', () => {
       const loggerName = 'RegisteredLogger';
       const customLogger = new Logger({ source: loggerName });
@@ -303,5 +316,24 @@ describe('Logger', () => {
       expect(logger1.logLevel).toBe(LogLevel.DEBUG);
       expect(logger2.logLevel).not.toBe(LogLevel.DEBUG);
     });
+    test('should set log level for specific loggers group', () => {
+      // Create multiple loggers
+      const logger1 = new Logger({ source: 'app.components.SpecificLogger1' });
+      const logger2 = new Logger({ source: 'app.components.SpecificLogger2' });
+      const logger3 = new Logger({ source: 'app.service.SpecificLogger3' });
+      const logger4 = new Logger({ source: 'app.service.SpecificLogger4' });
+      
+      // Set log level for specific logger
+      const logManager = LogManager.getInstance();
+      logManager.setLogLevel('app.components', LogLevel.DEBUG);
+      logManager.setLogLevel('app.service', LogLevel.ALL);
+      
+      // Check that only the specified logger has the new log level
+      expect(logger1.logLevel).toBe(LogLevel.DEBUG);
+      expect(logger2.logLevel).not.toBe(LogLevel.ALL);
+      expect(logger3.logLevel).toBe(LogLevel.ALL);
+
+    });
+
   });
 });

@@ -76,7 +76,18 @@ const userLogger = new Logger({
 
 userLogger.info('User logged in');
 userLogger.debug('Debug info will not show with INFO level');
+
+// Create a logger with hierarchical source name
+const componentLogger = new Logger({
+  source: 'app.components.UserProfile',
+  logLevel: LogLevel.DEBUG
+});
+
+// Log output will show abbreviated source: "a.c.UserProfile"
+componentLogger.info('Profile component initialized');
 ```
+
+When using hierarchical source names (with dots), the logger automatically abbreviates the source name in log outputs. For example, `app.components.UserProfile` will appear as `a.c.UserProfile` in the logs, making them more readable while preserving the hierarchical structure.
 
 ### Log Manager
 
@@ -90,8 +101,13 @@ const logManager = LogManager.getInstance();
 // Set log level for all registered loggers
 logManager.setGeneralLogLevel(LogLevel.ERROR);
 
-// Set log level for a specific logger
-logManager.setLogLevel('UserService', LogLevel.DEBUG);
+// Set log level for all loggers whose source name starts with the given prefix
+logManager.setLogLevel('app.components', LogLevel.DEBUG);
+// This affects loggers with sources like 'app.components.UserProfile', 'app.components.Button', etc.
+
+// Set log level for all loggers whose source name contains the given string
+logManager.setLogLevelContaining('Service', LogLevel.INFO);
+// This affects loggers with sources like 'UserService', 'AuthService', 'app.services.DataService', etc.
 
 // Check if a logger exists
 if (logManager.hasLogger('UserService')) {
@@ -99,6 +115,8 @@ if (logManager.hasLogger('UserService')) {
   const logger = logManager.getLogger('UserService');
 }
 ```
+
+The `setLogLevel` method now sets the log level for all loggers whose source name starts with the given prefix, making it easy to configure log levels for entire hierarchies of loggers. The new `setLogLevelContaining` method sets the log level for all loggers whose source name contains the given string, providing more flexible filtering options.
 
 ### Log Caching
 

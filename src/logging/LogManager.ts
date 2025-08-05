@@ -111,7 +111,7 @@ export class LogManager {
     }
 
     /**
-     * Sets the log level for a specific logger.
+     * Sets the log level for any logger that holds a source that starts with the given name
      * 
      * @param {string} name - The name of the logger
      * @param {LogLevel} logLevel - The log level to set
@@ -121,11 +121,26 @@ export class LogManager {
      * LogManager.getInstance().setLogLevel('AuthService', LogLevel.DEBUG);
      */
     public setLogLevel(name: string, logLevel: LogLevel): void {
-        const logger = this.getLogger(name);
-        if (logger) {
-            logger.logLevel = logLevel;
-        } else {
-            console.warn(`Logger with name ${name} not found.`);
-        }
+        this._loggers.forEach(curLogger =>{
+            if (curLogger.source.startsWith(name)){
+                curLogger.logLevel = logLevel;
+            }
+        })
     }
+
+  
+    /**
+     * Setting the log level for any logger that its name contains the given name parameter
+     * @param name 
+     * @param logLevel 
+     */
+    public setLogLevelContaining(name: string, logLevel: LogLevel): void {
+        this._loggers.forEach(curLogger =>{
+            if (curLogger.source.indexOf(name)!==-1){
+                curLogger.logLevel = logLevel;
+            }
+        })
+    }
+
+
 }

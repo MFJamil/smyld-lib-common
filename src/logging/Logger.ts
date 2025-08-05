@@ -54,6 +54,8 @@ export class Logger {
     /** Current log level */
     private _logLevel: LogLevel = LogLevel.ALL;
 
+    sourceLog: string;
+
     
 
 
@@ -84,6 +86,8 @@ export class Logger {
 
     if (source !== undefined) {
       this.source = source;
+      this.initSourceLog();
+
     }
     
     if (logLevel !== undefined) {
@@ -137,6 +141,41 @@ export class Logger {
     // return new Date().toLocaleString(this.locale, this.options);
     // return new Intl.DateTimeFormat(this.locale, this.options).format();
   }
+
+    /**
+     * Initializes the source log format by abbreviating namespace parts.
+     * For namespaced sources (e.g. 'app.service.component'), abbreviates all parts except the last one.
+     * Example: 'app.service.component' becomes 'a.s.component'
+     */
+    private initSourceLog(): void {
+        const NAMESPACE_SEPARATOR = '.';
+
+        if (!this.source.includes(NAMESPACE_SEPARATOR)) {
+            this.sourceLog = this.source;
+            return;
+        }
+
+        const sourceTokens = this.source.split(NAMESPACE_SEPARATOR);
+        const lastToken = sourceTokens[sourceTokens.length - 1];
+
+        this.sourceLog = this.formatNamespacedSource(sourceTokens, lastToken);
+        console.log(`Logging Source value for '${this.source}' : ${this.sourceLog}`);
+    }
+
+    /**
+     * Formats a namespaced source by abbreviating all parts except the last one.
+     * @param tokens - Array of namespace tokens
+     * @param lastToken - The last token to keep unchanged
+     * @returns Formatted source string
+     */
+    private formatNamespacedSource(tokens: string[], lastToken: string): string {
+        const abbreviatedParts = tokens
+            .slice(0, -1)
+            .map(token => token !== lastToken ? `${token.charAt(0)}.` : token)
+            .join('');
+
+        return `${abbreviatedParts}${lastToken}`;
+    }
 
   /**
    * Applies settings to the logger.
@@ -347,7 +386,7 @@ export class Logger {
    */
   public log(text: any): void {
     console.log(
-      '%c[' + this.createDate() + '] ' + (this.source ? this.source : '') + '  : %c' + text,
+      '%c[' + this.createDate() + '] ' + (this.sourceLog ? this.sourceLog : '') + '  : %c' + text,
       'color:blue;',
       'color:black;'
     );
@@ -541,7 +580,7 @@ export class Logger {
    */
   private composeLogMessage(msg: LogMessage): string {
     let newMessage: string = '%c[' + this.createDate() + '] ' + 
-                           (this.source ? this.source : '') + 
+                           (this.sourceLog ? this.sourceLog : '') +
                            ' - %c' + msg.type + 
                            ' %c:: %c' + msg.text;
     
