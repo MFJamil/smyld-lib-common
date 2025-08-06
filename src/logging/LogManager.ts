@@ -116,7 +116,7 @@ export class LogManager {
      */
     public setGeneralLogLevel(logLevel: LogLevel): void {
         this._logLevel = logLevel;
-        this._loggers.forEach(logger => {
+        this._allLoggers.forEach(logger => {
             logger.logLevel = logLevel;
         });
     }
