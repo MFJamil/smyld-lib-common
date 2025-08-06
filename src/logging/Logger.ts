@@ -45,15 +45,14 @@ export class Logger {
     /** Array to store console logs */
     clogs: any[] = [];
     
-    /** Logger settings */
-    settings: LogSettings = { cacheLogs: false, logLevel: LogLevel.DEFAULT };
-    
+
     /** Source identifier for this logger */
     source: string;
     
     /** Current log level */
     private _logLevel: LogLevel = LogLevel.ALL;
 
+  /** Abbriviated Source identifier for this logger */
     sourceLog: string;
 
     
@@ -78,10 +77,11 @@ export class Logger {
    */
   constructor(params: LoggerConfig = { source: 'MainLogger', logLevel: LogLevel.DEBUG}) {
     const { source, logLevel } = params;
+    const logManager = LogManager.getInstance();
 
-    if (LogManager.getInstance().hasLogger(source) && this.settings?.pooledLoggers) {
+    if (logManager.hasLogger(source) && logManager.logSettings?.pooledLoggers) {
       // If a logger with the same source already exists, return that instance
-      return LogManager.getInstance().getLogger(source);
+      return logManager.getLogger(source);
     }
 
     if (source !== undefined) {
@@ -96,15 +96,15 @@ export class Logger {
       // Set different default log levels for MainLogger and non-MainLogger instances
       if (this.source === 'MainLogger') {
         this._logLevel = LogLevel.DEBUG;
-      }else if (LogManager.getInstance().logLevel !== undefined) {
-        this._logLevel = LogManager.getInstance().logLevel;
+      }else if (logManager.logLevel !== undefined) {
+        this._logLevel = logManager.logLevel;
         // Fallback to DEFAULT log level if not set
       } else {
         this._logLevel = LogLevel.DEFAULT;
       }
     }
 
-    LogManager.getInstance().registerLogger(this.source, this);
+    logManager.registerLogger(this.source, this);
     
     // Enable log caching by default for MainLogger
     this.handleLogsCache();
@@ -159,7 +159,7 @@ export class Logger {
         const lastToken = sourceTokens[sourceTokens.length - 1];
 
         this.sourceLog = this.formatNamespacedSource(sourceTokens, lastToken);
-        console.log(`Logging Source value for '${this.source}' : ${this.sourceLog}`);
+        console.debug(`Logging Source value for '${this.source}' : ${this.sourceLog}`);
     }
 
     /**
@@ -189,8 +189,6 @@ export class Logger {
    * });
    */
   public setLogSettings(logSettings: LogSettings): void {
-    this.settings = logSettings;
-    
     if (logSettings !== undefined) {
       if (logSettings.cacheLogs) {
         this.handleLogsCache();
@@ -246,7 +244,8 @@ export class Logger {
    * @private
    */
   private handleLogsCache(): void {
-    if (this.source !== 'MainLogger' || (this.settings!==undefined && !this.settings.cacheLogs)) return;
+    const settings = LogManager.getInstance().logSettings;
+    if (this.source !== 'MainLogger' || (settings!==undefined && !settings.cacheLogs)) return;
     const instance = this;
     
     // Override console.log

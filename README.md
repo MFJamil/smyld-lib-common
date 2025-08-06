@@ -66,7 +66,7 @@ By default, `MainLogger` uses `LogLevel.DEBUG`, while custom loggers use `LogLev
 You can create custom loggers for different components or modules of your application:
 
 ```javascript
-import { Logger, LogLevel } from 'smyld-lib-common';
+import { Logger, LogLevel, LogManager } from 'smyld-lib-common';
 
 // Create a custom logger with a specific source name
 const userLogger = new Logger({ 
@@ -85,9 +85,52 @@ const componentLogger = new Logger({
 
 // Log output will show abbreviated source: "a.c.UserProfile"
 componentLogger.info('Profile component initialized');
+
+// Access logger properties
+console.log(componentLogger.source);      // "app.components.UserProfile"
+console.log(componentLogger.sourceLog);   // "a.c.UserProfile"
+console.log(componentLogger.logLevel);    // LogLevel.DEBUG
 ```
 
 When using hierarchical source names (with dots), the logger automatically abbreviates the source name in log outputs. For example, `app.components.UserProfile` will appear as `a.c.UserProfile` in the logs, making them more readable while preserving the hierarchical structure.
+
+#### Logger Methods
+
+Each logger instance provides the following methods:
+
+- `info(message, compact?)`: Logs an informational message
+- `debug(message, compact?)`: Logs a debug message
+- `warn(message, compact?)`: Logs a warning message
+- `error(message, compact?)`: Logs an error message
+- `log(message)`: Logs a plain message without formatting
+- `setLogSettings(settings)`: Configures the logger settings
+- `getCachedLogs()`: Returns an array of cached log messages
+- `deleteCachedLogs()`: Clears the cached log messages
+- `getCachedLogsAsBlob()`: Returns cached logs as a Blob for downloading
+
+The `compact` parameter (optional boolean) controls whether objects are logged in compact format.
+
+#### Logger Configuration
+
+Logger settings are now managed centrally through the LogManager. When you create a new logger, it inherits settings from the LogManager:
+
+```javascript
+// Configure global settings
+const logManager = LogManager.getInstance();
+logManager.logSettings = {
+  cacheLogs: true,
+  logLevel: LogLevel.DEBUG,
+  pooledLoggers: true
+};
+
+// Create a logger - it will inherit settings from LogManager
+const logger = new Logger({ source: 'MyComponent' });
+
+// You can still override specific settings per logger
+logger.logLevel = LogLevel.ERROR;
+```
+
+By default, creating multiple loggers with the same source name will return the same instance (controlled by the `pooledLoggers` setting in LogManager).
 
 ### Log Manager
 
@@ -109,14 +152,47 @@ logManager.setLogLevel('app.components', LogLevel.DEBUG);
 logManager.setLogLevelContaining('Service', LogLevel.INFO);
 // This affects loggers with sources like 'UserService', 'AuthService', 'app.services.DataService', etc.
 
+// Set log level for all loggers whose source name matches a regex pattern
+logManager.setLogLevelByRegex(/^api\.v\d+\..+$/, LogLevel.ERROR);
+// This affects loggers with sources like 'api.v1.UserController', 'api.v2.ProductController', etc.
+
+// Get all loggers matching a regex pattern
+const apiLoggers = logManager.getLoggersByRegex(/^api\..+$/);
+console.log(`Found ${apiLoggers.length} API loggers`);
+
+// Get all registered loggers
+const allLoggers = logManager.getAllLoggers();
+console.log(`Total loggers: ${allLoggers.length}`);
+
 // Check if a logger exists
 if (logManager.hasLogger('UserService')) {
   // Get a reference to an existing logger
   const logger = logManager.getLogger('UserService');
 }
+
+// Configure global log settings
+logManager.logSettings = {
+  cacheLogs: true,
+  logLevel: LogLevel.DEBUG,
+  pooledLoggers: true // Controls whether loggers with the same source are pooled (default: true)
+};
 ```
 
-The `setLogLevel` method now sets the log level for all loggers whose source name starts with the given prefix, making it easy to configure log levels for entire hierarchies of loggers. The new `setLogLevelContaining` method sets the log level for all loggers whose source name contains the given string, providing more flexible filtering options.
+The `LogManager` provides several methods for filtering and configuring loggers:
+
+- `setLogLevel(prefix, logLevel)`: Sets the log level for all loggers whose source name starts with the given prefix
+- `setLogLevelContaining(substring, logLevel)`: Sets the log level for all loggers whose source name contains the given substring
+- `setLogLevelByRegex(regex, logLevel)`: Sets the log level for all loggers whose source name matches the given regex pattern
+- `getLoggersByRegex(regex)`: Returns all loggers whose source name matches the given regex pattern
+- `getAllLoggers()`: Returns all registered loggers
+
+The `logSettings` property allows you to configure global settings for all loggers:
+
+- `cacheLogs`: Whether to cache log messages (default: false)
+- `logLevel`: The default log level for new loggers (default: LogLevel.DEFAULT)
+- `pooledLoggers`: Whether loggers with the same source name should be pooled (default: true)
+
+When `pooledLoggers` is true (default), creating a new logger with the same source name as an existing logger will return the existing instance. When false, a new instance will be created each time.
 
 ### Log Caching
 
@@ -144,7 +220,7 @@ The library provides a Vue plugin for easy integration with Vue applications:
 
 ```javascript
 import { createApp } from 'vue';
-import { VueLoggerPlugin } from 'smyld-lib-common';
+import { VueLoggerPlugin, LogLevel, LogManager } from 'smyld-lib-common';
 import App from './App.vue';
 
 const app = createApp(App);
@@ -152,11 +228,17 @@ const app = createApp(App);
 // Install the logger plugin with optional settings
 app.use(VueLoggerPlugin, {
   cacheLogs: true,
-  logLevel: LogLevel.DEBUG
+  logLevel: LogLevel.DEBUG,
+  pooledLoggers: true
 });
 
 app.mount('#app');
 ```
+
+When you install the plugin with settings, it automatically:
+1. Configures the MainLogger with these settings
+2. Updates the LogManager's global settings to match
+3. Makes the logger available throughout your Vue application
 
 Once installed, you can access the logger in any component using the `$log` property:
 
@@ -192,6 +274,30 @@ export default {
         logger.info('Function called');
       }
     };
+  }
+}
+```
+
+You can also access and configure the LogManager directly in your Vue application:
+
+```javascript
+// In a Vue component or setup file
+import { LogManager, LogLevel } from 'smyld-lib-common';
+
+export default {
+  methods: {
+    configureLogging() {
+      const logManager = LogManager.getInstance();
+      
+      // Set different log levels for different parts of your application
+      logManager.setLogLevel('api', LogLevel.ERROR);  // Production setting
+      logManager.setLogLevel('ui', LogLevel.INFO);    // Show important UI events
+      
+      if (process.env.NODE_ENV === 'development') {
+        // Enable more verbose logging in development
+        logManager.setLogLevelByRegex(/^(api|ui)\./, LogLevel.DEBUG);
+      }
+    }
   }
 }
 ```

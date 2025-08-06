@@ -1,5 +1,5 @@
 import { LogSettings } from './logging/LogSettings';
-import MainLogger, { Logger } from './index';
+import MainLogger, {Logger, LogManager} from './index';
 import { App } from 'vue';
 
 /**
@@ -74,6 +74,7 @@ export const VueLoggerPlugin = {
         
         // Apply settings if provided
         MainLogger.setLogSettings(options);
+        LogManager.getInstance().logSettings = options;
     },
 };
 

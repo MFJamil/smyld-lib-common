@@ -1,5 +1,5 @@
 import { Logger } from "./Logger";
-import { LogLevel } from "./LogSettings";
+import {LogLevel, LogSettings} from "./LogSettings";
 
 /**
  * @class
@@ -13,7 +13,11 @@ export class LogManager {
     /** Map of logger names to logger instances */
     private _loggers: Map<string, Logger>;
 
+    private _allLoggers:Logger[] = [];
+
     private _logLevel: LogLevel = undefined;
+
+    private _logSettings : LogSettings  = { cacheLogs: false, logLevel: LogLevel.DEFAULT , pooledLoggers: true };
 
     /**
      * Private constructor to prevent direct instantiation.
@@ -23,10 +27,16 @@ export class LogManager {
         this._loggers = new Map<string, Logger>();
     }
 
-
+    get logSettings(): LogSettings{
+        return this._logSettings;
+    }
 
     get logLevel(): LogLevel {
         return this._logLevel;
+    }
+
+    set logSettings(value:LogSettings){
+        this._logSettings = value;
     }
 
     /**
@@ -56,6 +66,7 @@ export class LogManager {
      * LogManager.getInstance().registerLogger('UserService', userLogger);
      */
     public registerLogger(name: string, logger: Logger): void {
+        this._allLoggers.push(logger);
         this._loggers.set(name, logger);
     }
 
@@ -121,7 +132,7 @@ export class LogManager {
      * LogManager.getInstance().setLogLevel('AuthService', LogLevel.DEBUG);
      */
     public setLogLevel(name: string, logLevel: LogLevel): void {
-        this._loggers.forEach(curLogger =>{
+        this._allLoggers.forEach(curLogger =>{
             if (curLogger.source.startsWith(name)){
                 curLogger.logLevel = logLevel;
             }
@@ -135,11 +146,38 @@ export class LogManager {
      * @param logLevel 
      */
     public setLogLevelContaining(name: string, logLevel: LogLevel): void {
-        this._loggers.forEach(curLogger =>{
+        this._allLoggers.forEach(curLogger =>{
             if (curLogger.source.indexOf(name)!==-1){
                 curLogger.logLevel = logLevel;
             }
         })
+    }
+    public setLogLevelByRegex(regex:RegExp, logLevel: LogLevel): void {
+        const targetLoggers = this.getLoggersByRegex(regex);
+        targetLoggers.forEach(curLogger => curLogger.logLevel=logLevel);
+    }
+
+    public getLoggersByRegex(regex:RegExp):Logger[]{
+        let result:Logger[] = [];
+        this._allLoggers.forEach(curLogger =>{
+            if (regex.test(curLogger.source)){
+                result.push(curLogger);
+            }
+        });
+        return result;
+    }
+
+    /**
+     * Returns all registered loggers.
+     * 
+     * @returns {Logger[]} Array of all registered logger instances
+     * 
+     * @example
+     * const allLoggers = LogManager.getInstance().getAllLoggers();
+     * console.log(`Total loggers: ${allLoggers.length}`);
+     */
+    public getAllLoggers(): Logger[] {
+        return this._allLoggers;
     }
 
 
