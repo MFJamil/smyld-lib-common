@@ -3,6 +3,9 @@ import { LogManager } from '../src/logging/LogManager';
 import { LogLevel } from '../src/logging/LogSettings';
 
 describe('LogManager', () => {
+  beforeEach(()=>{
+    LogManager.getInstance().clearAll();
+  });
   test('should be a singleton', () => {
     const instance1 = LogManager.getInstance();
     const instance2 = LogManager.getInstance();
@@ -74,6 +77,28 @@ describe('LogManager', () => {
     expect(logger3.logLevel).toBe(LogLevel.ALL);
   });
 
+  test('should set same log level for new Loggers after setting a group level', () => {
+    // Create multiple loggers
+    const logger1 = new Logger({ source: 'app.components.SpecificLogger1' });
+    const logger2 = new Logger({ source: 'app.components.SpecificLogger2' });
+    const logger3 = new Logger({ source: 'app.service.SpecificLogger3' });
+    const logger4 = new Logger({ source: 'app.service.SpecificLogger4' });
+
+    // Set log level for specific logger
+    const logManager = LogManager.getInstance();
+    logManager.setLogLevel('app.components', LogLevel.DEBUG);
+    logManager.setLogLevel('app.service', LogLevel.ERROR);
+
+    const logger5 = new Logger({ source: 'app.components.SpecificLogger5' });
+    const logger6 = new Logger({ source: 'app.service.SpecificLogger6' });
+
+    // Check that only the specified logger has the new log level
+    expect(logger1.logLevel).toBe(LogLevel.DEBUG);
+    expect(logger5.logLevel).toBe(LogLevel.DEBUG);
+    expect(logger3.logLevel).toBe(LogLevel.ERROR);
+    expect(logger6.logLevel).toBe(LogLevel.ERROR);
+  });
+
   test('should set log level for loggers containing a specific string', () => {
     // Create multiple loggers with different naming patterns
     const logger1 = new Logger({ source: 'UserService' });
@@ -91,6 +116,7 @@ describe('LogManager', () => {
   });
 
   test('should set log level for loggers matching a regex pattern', () => {
+
     // Create multiple loggers with different naming patterns
     const logger1 = new Logger({ source: 'api.v1.UserController', logLevel: LogLevel.DEBUG });
     const logger2 = new Logger({ source: 'api.v2.UserController', logLevel: LogLevel.DEBUG });

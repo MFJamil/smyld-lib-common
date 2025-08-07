@@ -18,6 +18,12 @@ function setupConsoleSpy(method: 'log' | 'info' | 'warn' | 'error' | 'debug') {
 }
 
 describe('Logger', () => {
+
+  beforeEach(()=>{
+    LogManager.getInstance().clearAll();
+  });
+
+
   // Reset console spies after each test
   afterEach(() => {
     jest.restoreAllMocks();
