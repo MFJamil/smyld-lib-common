@@ -11,7 +11,6 @@
     "watch": "tsc --watch",
     "test": "jest",
     "coverage": "jest --coverage",
-    "docs": "typedoc src/index.ts --out docs"
   },
   "repository": {
     "type": "git",
