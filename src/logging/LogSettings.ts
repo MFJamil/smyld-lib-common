@@ -42,6 +42,9 @@ export interface LogSettings {
      */
     pooledLoggers?: boolean;
 
+
+    libLogLevel:LogLevel;
+
     /**
      * Additional custom properties.
      */

@@ -1,6 +1,6 @@
-import { LogMessage, Type } from './LogMessage';
-import { LogSettings, LogLevel } from './LogSettings';
-import { LogManager } from "./LogManager";
+import {LogMessage, Type} from './LogMessage';
+import {LogLevel, LogSettings} from './LogSettings';
+import {LogManager} from "./LogManager";
 
 /**
  * @interface
@@ -159,7 +159,8 @@ export class Logger {
         const lastToken = sourceTokens[sourceTokens.length - 1];
 
         this.sourceLog = this.formatNamespacedSource(sourceTokens, lastToken);
-        console.debug(`Logging Source value for '${this.source}' : ${this.sourceLog}`);
+        if (LogManager.getInstance().logSettings.libLogLevel===LogLevel.DEBUG)
+          console.debug(`Logging Source value for '${this.source}' : ${this.sourceLog}`);
     }
 
     /**

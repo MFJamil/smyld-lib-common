@@ -19,7 +19,7 @@ export class LogManager {
 
     private _logLevel: LogLevel = undefined;
 
-    private _logSettings : LogSettings  = { cacheLogs: false, logLevel: LogLevel.DEFAULT , pooledLoggers: true };
+    private _logSettings : LogSettings  = { cacheLogs: false, logLevel: LogLevel.DEFAULT , pooledLoggers: true, libLogLevel: LogLevel.OFF };
 
     private _logConfiguration:LogConfiguration = new LogConfiguration();
 

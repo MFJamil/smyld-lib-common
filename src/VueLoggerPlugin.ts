@@ -1,6 +1,6 @@
-import { LogSettings } from './logging/LogSettings';
+import {LogLevel, LogSettings} from './logging/LogSettings';
 import MainLogger, {Logger, LogManager} from './index';
-import { App } from 'vue';
+import {App} from 'vue';
 
 /**
  * Vue plugin for integrating the Logger functionality into Vue applications.
@@ -60,9 +60,11 @@ export const VueLoggerPlugin = {
                 ? Symbol('[log]: ' + name)
                 : ('[log]: ') + name;
                 
-        console.log("Starting Logger Plugin");
-        console.log("Options: " + JSON.stringify(options, undefined, 1));
-        
+        if ((options!==undefined)&&(options.libLogLevel!==undefined)&&(options.libLogLevel === LogLevel.DEBUG)){
+            console.debug("Starting Logger Plugin");
+            console.debug("Options: " + JSON.stringify(options, undefined, 1));
+        }
+
         // Create a key for dependency injection
         const logKey = /*#__PURE__*/ PolySymbol('logger');
         

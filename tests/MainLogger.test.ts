@@ -1,7 +1,5 @@
-import MainLogger, { Logger } from '../src/logging/Logger';
-import { LogManager } from '../src/logging/LogManager';
-import { LogLevel } from '../src/logging/LogSettings';
-import { Type } from '../src/logging/LogMessage';
+import MainLogger, {Logger} from '../src/logging/Logger';
+import {LogLevel} from '../src/logging/LogSettings';
 
 // Helper function to spy on console methods
 function setupConsoleSpy(method: 'log' | 'info' | 'warn' | 'error' | 'debug') {
@@ -98,7 +96,7 @@ describe('MainLogger', () => {
     const testLogger:Logger = new Logger({source:'testDuplicateCachedLogs'})
     // Clear existing logs
     MainLogger.deleteCachedLogs();
-    MainLogger.setLogSettings({ cacheLogs: true });
+    MainLogger.setLogSettings({ cacheLogs: true, libLogLevel: LogLevel.OFF });
     // Log some messages
     testLogger.info('Test message 1');
     testLogger.warn('Test message 2');

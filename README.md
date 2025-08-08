@@ -191,6 +191,7 @@ The `logSettings` property allows you to configure global settings for all logge
 - `cacheLogs`: Whether to cache log messages (default: false)
 - `logLevel`: The default log level for new loggers (default: LogLevel.DEFAULT)
 - `pooledLoggers`: Whether loggers with the same source name should be pooled (default: true)
+- `libLogLevel`: Controls the logging level for the library's internal debug messages (default: LogLevel.OFF)
 
 When `pooledLoggers` is true (default), creating a new logger with the same source name as an existing logger will return the existing instance. When false, a new instance will be created each time.
 
@@ -229,7 +230,8 @@ const app = createApp(App);
 app.use(VueLoggerPlugin, {
   cacheLogs: true,
   logLevel: LogLevel.DEBUG,
-  pooledLoggers: true
+  pooledLoggers: true,
+  libLogLevel: LogLevel.OFF
 });
 
 app.mount('#app');
